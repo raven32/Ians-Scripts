@@ -1,0 +1,25 @@
+#### Description: Check OU path in AD for computers older than 90 days
+###  Written by:  Ian Wright
+###  Date:        6/27/2019
+
+
+
+
+# set date for file name
+$rptDate = Get-Date -Format m;
+
+#Logs file name
+$Logfilename = "$rptName" + "$rptDate.log"
+#set path for scripts to serch using DistinguishedName
+$dn = "OU=PScript_Test,OU=SandBox,OU=IET-New,OU=DEPARTMENTS,DC=ou,DC=ad3,DC=ucdavis,DC=edu"
+# File output path for report
+$rptName = "C:\scripts\Old-Computers-AGDT-Staging-"
+# how many  days its been since ad computer object has updated it password. 
+$date = (get-date).adddays(-90)
+
+
+#Generate report on computers about to be removed
+get-adcomputer -filter {passwordlastset -lt $date} -properties passwordlastset -searchbase $DN -searchscope Subtree | select name, passwordlastset | sort passwordlastset | Export-Csv ($rptName + ($rptDate + ".csv")) -NoTypeInformation | remove-adobject -recursive -verbose -confirm:$false
+
+# Remove computers in report
+get-adcomputer -filter {passwordlastset -lt $date} -properties passwordlastset -searchbase $DN -searchscope Subtree | remove-adobject -recursive -verbose -confirm:$false | Out-File -FilePath $Logfilename
