@@ -1,0 +1,62 @@
+ #get date for saving computer to append to .csv file under path
+$RptDate = Get-Date -Format "yyyy-MM-dd"
+#use Distinguised Name of OU
+$OU = "OU=AGDT-OU-Computers-Sandbox,OU=AGDT-OU-Computers,OU=AGDT,OU=DEPARTMENTS,DC=ou,DC=ad3,DC=ucdavis,DC=edu"
+$ouname = (Get-ADObject -id $OU -Properties *).Name
+#output path of reprot scan
+$RptPath = "C:\1\"
+# number of days -14 from today
+$changedate = (Get-Date).AddDays(-14)
+
+#connects to ad
+get-adobject -Identity $OU | Out-Null
+
+#gets collection of computer items to be evulated for deletion.
+$searchpath = Get-ChildItem -path ad:\$OU -Recurse 
+# $searchpath = Get-ADObject -id $OU
+
+$output = foreach ($object in $searchpath) {
+        $aditem = Get-ADObject -Identity $object -Properties *
+
+              $item = [PSCustomObject]@{
+       
+                Name = ''
+                DistinguishedName = ''
+                LastLogonDate = ''
+                ObjectClass = ''
+                OperatingSystem = ''
+                Modified = ''   
+                }
+
+                $item.ObjectClass = $object.ObjectClass
+                $item.Name = $object.Name
+                $item.DistinguishedName = $object.DistinguishedName
+                $item.Modified = $aditem.Modified
+                $item.OperatingSystem = $aditem.OperatingSystem
+                $name = $item.objectClass
+
+                    If ($aditem.ObjectClass -eq "Computer"){   
+            $adcomputer = get-adcomputer -Identity $object -Properties *
+            $item.LastLogonDate = $adcomputer.LastLogonDate
+    }
+
+
+
+    
+
+  if (($aditem.ObjectClass -eq "computer") -and (($item.LastLogonDate) -lt ($changedate))) {
+        Write-Host ""$object.Name" is older than 14 days and will be deleted" -ForegroundColor Yellow
+               $ADsearh += $item
+                $removepth = $object.distinguishedName
+                    Remove-Item -Path ad:\$removepth -Force -Confirm:$False
+            } Else { 
+            
+                if ($aditem.ObjectClass -eq "computer") {
+                   write-host ""$object.name" is less than 14 days old" -ForegroundColor Green
+                    }  Else {  
+         Write-Host ""$object.name" is not a computer object" -ForegroundColor Magenta
+         } 
+    }
+ }
+
+$ADsearh | Export-Csv ($RptPath + ($RptDate + ("-Computers deleted" + ".csv"))) -NoTypeInformation 
