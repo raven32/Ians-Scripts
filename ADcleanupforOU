@@ -15,7 +15,7 @@ get-adobject -Identity $OU | Out-Null
 $searchpath = Get-ChildItem -path ad:\$OU -Recurse 
 # $searchpath = Get-ADObject -id $OU
 
-$output = foreach ($object in $searchpath) {
+foreach ($object in $searchpath) {
         $aditem = Get-ADObject -Identity $object -Properties *
 
               $item = [PSCustomObject]@{
@@ -59,4 +59,4 @@ $output = foreach ($object in $searchpath) {
     }
  }
 
-$ADsearh | Export-Csv ($RptPath + ($RptDate + ("-Computers deleted" + ".csv"))) -NoTypeInformation 
+$ADsearh | Export-Csv ($RptPath + ($RptDate + ($ouname + ("-Computers deleted" + ".csv")))) -NoTypeInformation 
