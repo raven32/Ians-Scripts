@@ -1,10 +1,10 @@
- #get date for saving computer to append to .csv file under path
+  #get date for saving computer to append to .csv file under path
 $RptDate = Get-Date -Format "yyyy-MM-dd"
 #use Distinguised Name of OU
-$OU = "OU=AGDT-OU-Computers-Sandbox,OU=AGDT-OU-Computers,OU=AGDT,OU=DEPARTMENTS,DC=ou,DC=ad3,DC=ucdavis,DC=edu"
+$OU = "OU=AGDT,OU=AGDT-OU-Computers-Staging,OU=AGDT-OU-Computers,OU=AGDT,OU=DEPARTMENTS,DC=ou,DC=ad3,DC=ucdavis,DC=edu"
 $ouname = (Get-ADObject -id $OU -Properties *).Name
 #output path of reprot scan
-$RptPath = "C:\1\"
+$RptPath = "E:\MDTLogs\ADcleanup\"
 # number of days -14 from today
 $changedate = (Get-Date).AddDays(-14)
 
@@ -59,4 +59,4 @@ foreach ($object in $searchpath) {
     }
  }
 
-$ADsearh | Export-Csv ($RptPath + ($RptDate + ($ouname + ("-Computers deleted" + ".csv")))) -NoTypeInformation 
+$ADsearh | Export-Csv ($RptPath + ($RptDate + ($ouname + ("-Computers deleted" + ".csv")))) -NoTypeInformation  
